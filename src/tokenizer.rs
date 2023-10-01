@@ -15,10 +15,36 @@ pub struct PDFObjectHeader {
 }
 
 #[derive(Debug, PartialEq, Eq, Clone, Copy)]
-pub struct XRefEntry {
+pub struct XRefSimpleEntry {
     pub byte_offset: u64,
     pub generation_number: u64,
     pub free: bool
+}
+
+ #[derive(Debug, PartialEq, Eq, Clone, Copy)]
+pub struct XRefStreamFreeObject {
+    pub object_number_of_next_free_object: u64,
+    pub generation_number_for_next_object_use: u64
+}
+
+#[derive(Debug, PartialEq, Eq, Clone, Copy)]
+pub struct XRefStreamCompressedObject {
+    pub object_number_of_parent_stream: u64,
+    pub index_in_stream: u64
+}
+
+#[derive(Debug, PartialEq, Eq, Clone, Copy)]
+pub struct XRefStreamUncompressedObject {
+    pub byte_offset: u64,
+    pub generation_number: u64
+}
+
+#[derive(Debug, PartialEq, Eq, Clone, Copy)]
+pub enum XRefEntry {
+    Free(XRefStreamFreeObject),
+    Uncompressed(XRefStreamUncompressedObject),
+    Compressed(XRefStreamCompressedObject),
+    Simple(XRefSimpleEntry)
 }
 
 #[derive(Debug, PartialEq, Eq, Clone, Copy)]
@@ -29,7 +55,7 @@ pub struct XRefHeader {
 
 #[derive(Debug, PartialEq, Eq, Clone)]
 pub struct XRefSection {
-    pub header: XRefHeader,
+    pub header: Option<XRefHeader>,
     pub entries: Vec<XRefEntry>
 }
 
@@ -668,11 +694,11 @@ impl<T: Read + Seek> PDFTokenize for Tokenizer<T> {
                         }
                     };
 
-                    return Ok(PDFToken::XRefEntry(XRefEntry {
+                    return Ok(PDFToken::XRefEntry(XRefEntry::Simple(XRefSimpleEntry {
                         byte_offset,
                         generation_number,
                         free
-                    }));
+                    })));
                 }
                 TokenizerState::Trailer => {
                     loop {

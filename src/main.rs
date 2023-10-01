@@ -1,3 +1,5 @@
+// #![feature(collections)]
+
 use std::io::{prelude::*, Cursor};
 use std::fs::File;
 use env_logger::{Builder, Target};
@@ -5,6 +7,9 @@ use env_logger::{Builder, Target};
 pub mod tokenizer;
 pub mod reader;
 pub mod pdf;
+pub mod page;
+pub mod content_stream_lexer;
+pub mod text;
 
 fn main() {
     Builder::new()
